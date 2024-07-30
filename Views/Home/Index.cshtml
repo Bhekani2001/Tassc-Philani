@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+</head>
+<body>
+    <main class="container mt-5">
+        <section class="jumbotron text-center bg-light shadow">
+            <div class="card border-0">
+                <div class="card-body">
+                    <h1 class="display-4">Welcome to TASSC</h1>
+                    <br />
+                    @if (User.Identity.IsAuthenticated)
+                    {
+
+
+                        <h1> Welcome Back</h1>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-outline-secondary">
+                            <i class="fas fa-sign-in-alt"></i> Log in
+                        </a>
+                    }
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.5.4/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

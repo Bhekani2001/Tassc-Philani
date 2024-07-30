@@ -1,0 +1,310 @@
+﻿@model IEnumerable<Tassc.Models.Tasks>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header text-center">
+            <h2>Task List</h2>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#addTaskModal">Add Task</button>
+                <a href="@Url.Action("ExportToExcel", "Tasks")" class="btn btn-success ml-2">
+                    <i class="bi bi-file-earmark-excel"></i>
+                </a>
+                <a href="@Url.Action("ExportToPdf", "Tasks")" class="btn btn-danger ml-2">
+                    <i class="bi bi-file-earmark-pdf"></i>
+                </a>
+
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Task Name</th>
+                        <th>@Html.DisplayNameFor(model => model.First().Description)</th>
+                        <th>Status <span class="small">(Update)</span></th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@Html.DisplayFor(modelItem => item.TaskName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.Description)</td>
+                            <td>@Html.DropDownList("status_" + item.taskkey, (IEnumerable<SelectListItem>)ViewBag.StatusOptions, item.Status, new { @class = "form-control status-dropdown" })</td>
+                            <td>@String.Format("{0:yyyy-MM-dd}", item.DueDate)</td>
+                            <td>
+                                <button type="button" class="btn btn-outline-secondary btn-sm update-task" data-task-id="@item.taskkey" data-task-name="@item.TaskName" data-description="@item.Description">Update</button> |
+                                <a href="#" class="btn btn-outline-danger btn-sm delete-task" data-task-id="@item.taskkey">Trash</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h5 class="modal-title" id="addTaskModalLabel">Add Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("AddTask", "Tasks", FormMethod.Post, new { id = "addTaskForm" }))
+                {
+                    <div class="form-group">
+                        @Html.Label("Task Name", "Task Name")
+                        @Html.TextBox("TaskName", null, new { @class = "form-control required", })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.First().Description)
+                        @Html.TextBox("Description", null, new { @class = "form-control required", })
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(model => model.First().DueDate)
+                        @Html.TextBox("DueDate", null, new { @class = "form-control required", @type = "date", })
+                    </div>
+                    <button type="button" class="btn btn-primary" id="saveTaskButton">Save</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateTaskModal" tabindex="-1" aria-labelledby="updateTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h5 class="modal-title" id="updateTaskModalLabel">Update Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @using (Html.BeginForm("UpdateTask", "Tasks", FormMethod.Post, new { id = "updateTaskForm" }))
+                {
+                    <input type="hidden" id="taskId" name="taskId" />
+                    <div class="form-group">
+                        @Html.Label("Task Name", "Task Name")
+                        @Html.TextBox("TaskName", null, new { @class = "form-control", id = "taskName" })
+                    </div>
+                    <div class="form-group">
+                        @Html.Label("Description", "Description")
+                        @Html.TextBox("Description", null, new { @class = "form-control", id = "taskDescription" })
+                    </div>
+                    <button type="button" class="btn btn-primary" id="updateTaskButton">Update</button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteTaskModal" tabindex="-1" aria-labelledby="deleteTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-secondary">
+                <h5 class="modal-title" id="deleteTaskModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this task?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var taskIdToDelete;
+            var taskIdToUpdate;
+
+            $('.status-dropdown').change(function () {
+                var dropdown = $(this);
+                var taskKey = dropdown.attr('id').split('_')[1];
+                var newStatus = dropdown.val();
+
+                Swal.fire({
+                    title: 'Save changes?',
+                    text: "You have selected a new status. Do you want to save the changes?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, save it!',
+                    cancelButtonText: 'No, cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("UpdateStatus", "Tasks")',
+                            type: 'POST',
+                            data: {
+                                taskKey: taskKey,
+                                status: newStatus
+                            },
+                            success: function () {
+                                Swal.fire(
+                                    'Saved!',
+                                    'Your changes have been saved.',
+                                    'success'
+                                );
+                            },
+                            error: function () {
+                                Swal.fire(
+                                    'Error!',
+                                    'There was an issue saving your changes.',
+                                    'error'
+                                );
+                            }
+                        });
+                    } else {
+                        dropdown.val(dropdown.data('old-value'));
+                    }
+                });
+
+                dropdown.data('old-value', dropdown.val());
+            });
+
+            $('#saveTaskButton').click(function () {
+                var formData = $('#addTaskForm').serialize();
+
+                $.ajax({
+                    url: '@Url.Action("AddTask", "Tasks")',
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire(
+                                'Saved!',
+                                'Your task has been added.',
+                                'success'
+                            ).then((result) => {
+                                if (result.isConfirmed) {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'There was an issue adding your task.',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function () {
+                        Swal.fire(
+                            'Error!',
+                            'There was an issue adding your task.',
+                            'error'
+                        );
+                    }
+                });
+            });
+
+            $('.update-task').click(function () {
+                taskIdToUpdate = $(this).data('task-id');
+                var taskName = $(this).data('task-name');
+                var description = $(this).data('description');
+
+                $('#taskId').val(taskIdToUpdate);
+                $('#taskName').val(taskName);
+                $('#taskDescription').val(description);
+
+                $('#updateTaskModal').modal('show');
+            });
+
+            $('#updateTaskButton').click(function () {
+                var formData = $('#updateTaskForm').serialize();
+
+                $.ajax({
+                    url: '@Url.Action("UpdateTask", "Tasks")',
+                    type: 'POST',
+                    data: formData,
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire(
+                                'Updated!',
+                                'Your task has been updated.',
+                                'success'
+                            ).then((result) => {
+                                if (result.isConfirmed) {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'There was an issue updating your task.',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function () {
+                        Swal.fire(
+                            'Error!',
+                            'There was an issue updating your task.',
+                            'error'
+                        );
+                    }
+                });
+            });
+
+            $('.delete-task').click(function () {
+                taskIdToDelete = $(this).data('task-id');
+                $('#deleteTaskModal').modal('show');
+            });
+
+            $('#confirmDeleteButton').click(function () {
+                $.ajax({
+                    url: '@Url.Action("DeleteTask", "Tasks")',
+                    type: 'POST',
+                    data: { id: taskIdToDelete },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire(
+                                'Deleted!',
+                                'Your task has been deleted.',
+                                'success'
+                            ).then((result) => {
+                                if (result.isConfirmed) {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                'There was an issue deleting your task.',
+                                'error'
+                            );
+                        }
+                    },
+                    error: function () {
+                        Swal.fire(
+                            'Error!',
+                            'There was an issue deleting your task.',
+                            'error'
+                        );
+                    }
+                });
+            });
+        });
+    </script>
+}

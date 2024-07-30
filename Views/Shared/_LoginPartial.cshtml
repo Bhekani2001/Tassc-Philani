@@ -1,0 +1,57 @@
+﻿@using Microsoft.AspNet.Identity
+@if (Request.IsAuthenticated)
+{
+    using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm", @class = "navbar-right" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <ul class="navbar-nav ms-auto">
+            <!-- Added ms-auto for margin-start auto to push items to the right -->
+            <li class="nav-item">
+                @Html.ActionLink("Hello " + User.Identity.GetUserName() + "!", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage", @class = "nav-link" })
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="javascript:document.getElementById('logoutForm').submit()">Log off</a>
+            </li>
+            <li class="nav-item">
+                <!-- Notification Icon -->
+                <a href="javascript:void(0);" class="nav-link" data-bs-toggle="modal" data-bs-target="#notificationModal" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                </a>
+            </li>
+        </ul>
+    }
+}
+else
+{
+    <ul class="navbar-nav ms-auto">
+        <!-- Added ms-auto for margin-start auto to push items to the right -->
+        <li class="nav-item">
+            <a href="@Url.Action("Login", "Account")" class="btn btn-outline-secondary">
+                <i class="fas fa-sign-in-alt"></i> Log in
+            </a>
+        </li>
+    </ul>
+}
+
+<!-- Bootstrap Modal for Notifications -->
+<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationModalLabel">Notifications</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Message content -->
+                <p>No new notifications.</p>
+                <!-- Add more messages as needed -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js" integrity="sha384-5M5dC53aI2V7R5tAh4C/ZBRRwlPG8A1Ic1pFheEbtpTn4egj0Y3z5V6B4Whh3S4a" crossorigin="anonymous"></script>
