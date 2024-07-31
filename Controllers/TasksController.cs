@@ -55,6 +55,7 @@ namespace Tassc.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public JsonResult UpdateStatus(int taskKey, string status)
         {
             var task = db.Tasks.Find(taskKey);

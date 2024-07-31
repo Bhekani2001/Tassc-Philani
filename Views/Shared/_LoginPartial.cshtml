@@ -5,27 +5,40 @@
     {
         @Html.AntiForgeryToken()
 
-        <ul class="navbar-nav ms-auto">
-            <!-- Added ms-auto for margin-start auto to push items to the right -->
-            <li class="nav-item">
-                @Html.ActionLink("Hello " + User.Identity.GetUserName() + "!", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage", @class = "nav-link" })
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="javascript:document.getElementById('logoutForm').submit()">Log off</a>
-            </li>
-            <li class="nav-item">
-                <!-- Notification Icon -->
-                <a href="javascript:void(0);" class="nav-link" data-bs-toggle="modal" data-bs-target="#notificationModal" title="Notifications">
-                    <i class="fas fa-bell"></i>
-                </a>
-            </li>
-        </ul>
+<ul class="navbar-nav ms-auto">
+    <li class="nav-item">
+        @Html.ActionLink("Hello " + User.Identity.GetUserName() + "!", "Index", "Manage", routeValues: null, htmlAttributes: new { title = "Manage", @class = "nav-link" })
+    </li>
+    <li class="nav-item">
+        <a href="javascript:void(0);" class="nav-link" data-bs-toggle="modal" data-bs-target="#notificationModal" title="Notifications">
+            <i class="fas fa-bell"></i>
+        </a>
+    </li>
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="settingsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-cog"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="settingsDropdown">
+            <a class="dropdown-item" href="#">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a class="dropdown-item" href="#">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="javascript:document.getElementById('logoutForm').submit()">
+                <i class="fas fa-sign-out-alt"></i> Log out
+            </a>
+        </div>
+    </li>
+
+</ul>
     }
 }
 else
 {
     <ul class="navbar-nav ms-auto">
-        <!-- Added ms-auto for margin-start auto to push items to the right -->
         <li class="nav-item">
             <a href="@Url.Action("Login", "Account")" class="btn btn-outline-secondary">
                 <i class="fas fa-sign-in-alt"></i> Log in
@@ -34,7 +47,6 @@ else
     </ul>
 }
 
-<!-- Bootstrap Modal for Notifications -->
 <div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -43,9 +55,7 @@ else
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Message content -->
                 <p>No new notifications.</p>
-                <!-- Add more messages as needed -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

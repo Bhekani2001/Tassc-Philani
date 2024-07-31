@@ -34,8 +34,7 @@
                     @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { role = "form", id = "loginForm" }))
                     {
                         @Html.AntiForgeryToken()
-                        <hr />@*
-                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })*@
+                        <hr />
                         <div class="form-group row">
                             @Html.LabelFor(m => m.Email, new { @class = "col-md-4 col-form-label" })
                             <div class="col-md-8">
@@ -63,7 +62,7 @@
                             Don't have an account? <a href="@Url.Action("Register", "Account")" class="btn btn-link">Register</a>
                         </p>
                         <p class="text-center">
-                            <a href="#" class="btn btn-outline-danger">
+                            <a href="#" class="btn btn-outline-danger" data-toggle="modal" data-target="#googleLoginModal">
                                 <i class="fab fa-google"></i> Log in with Google
                             </a>
                         </p>
@@ -73,24 +72,80 @@
         </section>
     </main>
 
+    <div class="modal fade" id="googleLoginModal" tabindex="-1" role="dialog" aria-labelledby="googleLoginModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary">
+                    <h5 class="modal-title text-center" id="googleLoginModalLabel">Google Login</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>Please log in using your Google account.</p>
+                    <button type="button" class="btn btn-outline-danger">
+                        <i class="fab fa-google"></i> Log in with Google
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.5.4/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.js"></script>
     <script>
         $(document).ready(function () {
-            @if (ViewData.ModelState.ContainsKey("") && ViewData.ModelState[""].Errors.Count > 0)
-            {
-                <text>
+            $('#loginForm').on('submit', function (e) {
+                e.preventDefault();
+
+                let valid = true;
+                $('.required').each(function () {
+                    if ($(this).val() === '') {
+                        valid = false;
+                        return false;
+                    }
+                });
+
+                if (!valid) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Oops...',
-                        text: '@ViewData.ModelState[""].Errors[0].ErrorMessage',
+                        title: 'Error',
+                        text: 'Please fill out all required fields.',
                     });
-                </text>
-            }
+                } else {
+                    $.post($(this).attr('action'), $(this).serialize())
+                        .done(function (response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success',
+                                    text: 'Logged in successfully.',
+                                }).then(() => {
+                                    window.location.href = response.returnUrl || '/';
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message,
+                                });
+                            }
+                        })
+                        .fail(function () {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'An unexpected error occurred.',
+                            });
+                        });
+                }
+            });
         });
     </script>
 </body>
 </html>
-

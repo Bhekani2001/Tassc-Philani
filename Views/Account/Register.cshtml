@@ -26,7 +26,7 @@
                     Create a New Account
                 </div>
                 <div class="card-body">
-                    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" }))
+                    @using (Html.BeginForm("Register", "Account", FormMethod.Post, new { role = "form" , id="registerform"}))
                     {
                         @Html.AntiForgeryToken()
                         <hr />
@@ -74,24 +74,30 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.all.min.js"></script>
     <script>
         $(document).ready(function () {
-            $("form").on("submit", function (event) {
-                var isValid = true;
+            $('#registerform').on('submit', function (e) {
+                e.preventDefault();
 
-                // Check each required field
-                $(".required").each(function () {
-                    if ($(this).val().trim() === "") {
-                        isValid = false;
-                        return false; // Break out of each loop
+                let valid = true;
+                $('.required').each(function () {
+                    if ($(this).val() === '') {
+                        valid = false;
+                        return false;
                     }
                 });
 
-                // If not valid, prevent form submission and show swal
-                if (!isValid) {
-                    event.preventDefault();
+                if (!valid) {
                     Swal.fire({
                         icon: 'error',
-                        title: 'Oops...',
-                        text: 'Please fill in all required fields!'
+                        title: 'Error',
+                        text: 'Please fill out all required fields.',
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Registered successfully.',
+                    }).then(() => {
+                        this.submit();
                     });
                 }
             });
