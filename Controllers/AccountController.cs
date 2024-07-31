@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Net.Mail;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
@@ -193,7 +195,6 @@ namespace Tassc.Controllers
             return View();
         }
 
-        //
         // POST: /Account/ForgotPassword
         [HttpPost]
         [AllowAnonymous]
@@ -203,23 +204,65 @@ namespace Tassc.Controllers
             if (ModelState.IsValid)
             {
                 var user = await UserManager.FindByNameAsync(model.Email);
-                if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
+                if (user == null)
                 {
-                    // Don't reveal that the user does not exist or is not confirmed
-                    return View("ForgotPasswordConfirmation");
+                    ViewBag.ErrorMessage = "The user either does not exist or is not confirmed.";
+                    return View(model);
                 }
 
-                // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
-                // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                // Generate password reset token
+                string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+
+                // Send email using SMTP
+                try
+                {
+                    await SendResetPasswordEmailAsync(model.Email, callbackUrl);
+                    ViewBag.SuccessMessage = "A reset password link has been sent to your email.";
+                    return View(model);
+                }
+                catch (Exception ex)
+                {
+                    // Log the exception
+                    ViewBag.ErrorMessage = $"Error sending email: {ex.Message}";
+                    return View(model);
+                }
             }
 
             // If we got this far, something failed, redisplay form
             return View(model);
         }
+
+        private async Task SendResetPasswordEmailAsync(string email, string callbackUrl)
+        {
+            var fromAddress = new MailAddress("umlondolozima2023@gmail.com", "Tassc Philani");
+            var toAddress = new MailAddress(email);
+            const string fromPassword = "ageprdkkdspmzpqd"; // Use environment variables or a secure method to store this
+            const string subject = "Tassc Reset Password";
+            string body = $"Please reset your password by clicking <a href=\"{callbackUrl}\">here</a>";
+
+            var smtp = new SmtpClient
+            {
+                Host = "smtp.gmail.com",
+                Port = 587,
+                EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(fromAddress.Address, fromPassword),
+                Timeout = 20000
+            };
+
+            using (var message = new MailMessage(fromAddress, toAddress)
+            {
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
+            })
+            {
+                await smtp.SendMailAsync(message);
+            }
+        }
+
 
         //
         // GET: /Account/ForgotPasswordConfirmation
