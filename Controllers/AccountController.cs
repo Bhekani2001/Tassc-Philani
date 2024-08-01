@@ -230,24 +230,19 @@ namespace Tassc.Controllers
         }
 
 
-        //
-        // GET: /Account/ForgotPasswordConfirmation
         [AllowAnonymous]
         public ActionResult ForgotPasswordConfirmation()
         {
             return View();
         }
 
-        //
-        // GET: /Account/ResetPassword
+        
         [AllowAnonymous]
         public ActionResult ResetPassword(string code)
         {
             return code == null ? View("Error") : View();
         }
 
-        //
-        // POST: /Account/ResetPassword
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -272,27 +267,20 @@ namespace Tassc.Controllers
             return View();
         }
 
-        //
-        // GET: /Account/ResetPasswordConfirmation
         [AllowAnonymous]
         public ActionResult ResetPasswordConfirmation()
         {
             return View();
         }
 
-        //
-        // POST: /Account/ExternalLogin
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public ActionResult ExternalLogin(string provider, string returnUrl)
         {
-            // Request a redirect to the external login provider
             return new ChallengeResult(provider, Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl }));
         }
 
-        //
-        // GET: /Account/SendCode
         [AllowAnonymous]
         public async Task<ActionResult> SendCode(string returnUrl, bool rememberMe)
         {
@@ -306,8 +294,7 @@ namespace Tassc.Controllers
             return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
-        //
-        // POST: /Account/SendCode
+
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -318,7 +305,6 @@ namespace Tassc.Controllers
                 return View();
             }
 
-            // Generate the token and send it
             if (!await SignInManager.SendTwoFactorCodeAsync(model.SelectedProvider))
             {
                 return View("Error");
@@ -326,8 +312,7 @@ namespace Tassc.Controllers
             return RedirectToAction("VerifyCode", new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
         }
 
-        //
-        // GET: /Account/ExternalLoginCallback
+
         [AllowAnonymous]
         public async Task<ActionResult> ExternalLoginCallback(string returnUrl)
         {
@@ -336,8 +321,6 @@ namespace Tassc.Controllers
             {
                 return RedirectToAction("Login");
             }
-
-            // Sign in the user with this external login provider if the user already has a login
             var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
             switch (result)
             {
@@ -349,15 +332,13 @@ namespace Tassc.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
                 case SignInStatus.Failure:
                 default:
-                    // If the user does not have an account, then prompt the user to create an account
                     ViewBag.ReturnUrl = returnUrl;
                     ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
                     return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
             }
         }
 
-        //
-        // POST: /Account/ExternalLoginConfirmation
+
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -370,7 +351,6 @@ namespace Tassc.Controllers
 
             if (ModelState.IsValid)
             {
-                // Get the information about the user from the external login provider
                 var info = await AuthenticationManager.GetExternalLoginInfoAsync();
                 if (info == null)
                 {
@@ -394,8 +374,6 @@ namespace Tassc.Controllers
             return View(model);
         }
 
-        //
-        // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
@@ -404,8 +382,6 @@ namespace Tassc.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        //
-        // GET: /Account/ExternalLoginFailure
         [AllowAnonymous]
         public ActionResult ExternalLoginFailure()
         {
