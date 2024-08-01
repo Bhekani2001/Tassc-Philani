@@ -177,3 +177,4 @@ C:\Users\EDGETEC\source\repos\Tassc\Tassc\obj\Debug\Tassc.csproj.CoreCompileInpu
 C:\Users\EDGETEC\source\repos\Tassc\Tassc\obj\Debug\Tassc.csproj.Up2Date
 C:\Users\EDGETEC\source\repos\Tassc\Tassc\obj\Debug\Tassc.dll
 C:\Users\EDGETEC\source\repos\Tassc\Tassc\obj\Debug\Tassc.pdb
+C:\Users\EDGETEC\source\repos\Tassc\Tassc\bin\QRCoder.dll
